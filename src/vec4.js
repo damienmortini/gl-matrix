@@ -1,23 +1,3 @@
-/* Copyright (c) 2015, Brandon Jones, Colin MacKenzie IV.
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE. */
-
 import * as glMatrix from "./common.js";
 
 /**
@@ -32,10 +12,12 @@ import * as glMatrix from "./common.js";
  */
 export function create() {
   let out = new glMatrix.ARRAY_TYPE(4);
-  out[0] = 0;
-  out[1] = 0;
-  out[2] = 0;
-  out[3] = 0;
+  if(glMatrix.ARRAY_TYPE != Float32Array) {
+    out[0] = 0;
+    out[1] = 0;
+    out[2] = 0;
+    out[3] = 0;
+  }
   return out;
 }
 
@@ -382,11 +364,11 @@ export function normalize(out, a) {
   let len = x*x + y*y + z*z + w*w;
   if (len > 0) {
     len = 1 / Math.sqrt(len);
-    out[0] = x * len;
-    out[1] = y * len;
-    out[2] = z * len;
-    out[3] = w * len;
   }
+  out[0] = x * len;
+  out[1] = y * len;
+  out[2] = z * len;
+  out[3] = w * len;
   return out;
 }
 
@@ -402,12 +384,41 @@ export function dot(a, b) {
 }
 
 /**
+ * Returns the cross-product of three vectors in a 4-dimensional space
+ *
+ * @param {vec4} result the receiving vector
+ * @param {vec4} U the first vector
+ * @param {vec4} V the second vector
+ * @param {vec4} W the third vector
+ * @returns {vec4} result
+ */
+export function cross (out, u, v, w) {
+    let A = (v[0] * w[1]) - (v[1] * w[0]),
+        B = (v[0] * w[2]) - (v[2] * w[0]),
+        C = (v[0] * w[3]) - (v[3] * w[0]),
+        D = (v[1] * w[2]) - (v[2] * w[1]),
+        E = (v[1] * w[3]) - (v[3] * w[1]),
+        F = (v[2] * w[3]) - (v[3] * w[2]);
+    let G = u[0];
+    let H = u[1];
+    let I = u[2];
+    let J = u[3];
+
+    out[0] = (H * F) - (I * E) + (J * D);
+    out[1] = -(G * F) + (I * C) - (J * B);
+    out[2] = (G * E) - (H * C) + (J * A);
+    out[3] = -(G * D) + (H * B) - (I * A);
+
+    return out;
+};
+
+/**
  * Performs a linear interpolation between two vec4's
  *
  * @param {vec4} out the receiving vector
  * @param {vec4} a the first operand
  * @param {vec4} b the second operand
- * @param {Number} t interpolation amount between the two inputs
+ * @param {Number} t interpolation amount, in the range [0-1], between the two inputs
  * @returns {vec4} out
  */
 export function lerp(out, a, b, t) {
@@ -429,16 +440,30 @@ export function lerp(out, a, b, t) {
  * @param {Number} [scale] Length of the resulting vector. If ommitted, a unit vector will be returned
  * @returns {vec4} out
  */
-export function random(out, vectorScale) {
-  vectorScale = vectorScale || 1.0;
+export function random(out, scale) {
+  scale = scale || 1.0;
 
-  //TODO: This is a pretty awful way of doing this. Find something better.
-  out[0] = glMatrix.RANDOM();
-  out[1] = glMatrix.RANDOM();
-  out[2] = glMatrix.RANDOM();
-  out[3] = glMatrix.RANDOM();
-  normalize(out, out);
-  scale(out, out, vectorScale);
+  // Marsaglia, George. Choosing a Point from the Surface of a
+  // Sphere. Ann. Math. Statist. 43 (1972), no. 2, 645--646.
+  // http://projecteuclid.org/euclid.aoms/1177692644;
+  var v1, v2, v3, v4;
+  var s1, s2;
+  do {
+    v1 = glMatrix.RANDOM() * 2 - 1;
+    v2 = glMatrix.RANDOM() * 2 - 1;
+    s1 = v1 * v1 + v2 * v2;
+  } while (s1 >= 1);
+  do {
+    v3 = glMatrix.RANDOM() * 2 - 1;
+    v4 = glMatrix.RANDOM() * 2 - 1;
+    s2 = v3 * v3 + v4 * v4;
+  } while (s2 >= 1);
+
+  var d = Math.sqrt((1 - s1) / s2);
+  out[0] = scale * v1;
+  out[1] = scale * v2;
+  out[2] = scale * v3 * d;
+  out[3] = scale * v4 * d;
   return out;
 }
 
@@ -482,6 +507,20 @@ export function transformQuat(out, a, q) {
   out[1] = iy * qw + iw * -qy + iz * -qx - ix * -qz;
   out[2] = iz * qw + iw * -qz + ix * -qy - iy * -qx;
   out[3] = a[3];
+  return out;
+}
+
+/**
+ * Set the components of a vec4 to zero
+ *
+ * @param {vec4} out the receiving vector
+ * @returns {vec4} out
+ */
+export function zero(out) {
+  out[0] = 0.0;
+  out[1] = 0.0;
+  out[2] = 0.0;
+  out[3] = 0.0;
   return out;
 }
 

@@ -1,26 +1,6 @@
-/* Copyright (c) 2015, Brandon Jones, Colin MacKenzie IV.
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE. */
-
-import * as mat3 from "../../src/gl-matrix/mat3"
-import * as mat4 from "../../src/gl-matrix/mat4"
-import * as vec3 from "../../src/gl-matrix/vec3"
+import * as mat3 from "../../src/mat3"
+import * as mat4 from "../../src/mat4"
+import * as vec3 from "../../src/vec3"
 
 describe("vec3", function() {
     let out, vecA, vecB, result;
@@ -158,6 +138,12 @@ describe("vec3", function() {
 
             it("should return out", function() { expect(result).toBe(out); });
         });
+    });
+
+    describe("transformQuat", function() {
+       beforeEach(function() { result = vec3.transformQuat(out, vecA, [0.18257418567011074, 0.3651483713402215, 0.5477225570103322, 0.730296742680443]); });
+       it("should rotate the input vector", function() {  expect(out).toBeEqualish([1, 2, 3]); });
+       it("should return out", function() { expect(result).not.toBe([1,2,3,4]); });
     });
 
     describe("create", function() {
@@ -465,7 +451,7 @@ describe("vec3", function() {
 
         beforeEach(function() { result = vec3.distance(vecA, vecB); });
 
-        it("should return the distance", function() { expect(result).toBeCloseTo(5.196152); });
+        it("should return the distance", function() { expect(result).toBeEqualish(5.196152); });
     });
 
     describe("squaredDistance", function() {
@@ -481,7 +467,7 @@ describe("vec3", function() {
 
         beforeEach(function() { result = vec3.len(vecA); });
 
-        it("should return the length", function() { expect(result).toBeCloseTo(3.741657); });
+        it("should return the length", function() { expect(result).toBeEqualish(3.741657); });
     });
 
     describe("squaredLength", function() {
@@ -594,14 +580,14 @@ describe("vec3", function() {
         describe("with no scale", function() {
             beforeEach(function() { result = vec3.random(out); });
 
-            it("should result in a unit length vector", function() { expect(vec3.len(out)).toBeCloseTo(1.0); });
+            it("should result in a unit length vector", function() { expect(vec3.len(out)).toBeEqualish(1.0); });
             it("should return out", function() { expect(result).toBe(out); });
         });
 
         describe("with a scale", function() {
             beforeEach(function() { result = vec3.random(out, 5.0); });
 
-            it("should result in a unit length vector", function() { expect(vec3.len(out)).toBeCloseTo(5.0); });
+            it("should result in a unit length vector", function() { expect(vec3.len(out)).toBeEqualish(5.0); });
             it("should return out", function() { expect(result).toBe(out); });
         });
     });
@@ -748,5 +734,13 @@ describe("vec3", function() {
         it("should return true for close but not identical vectors", function() { expect(r2).toBe(true); });
         it("should not modify vecA", function() { expect(vecA).toBeEqualish([0, 1, 2]); });
         it("should not modify vecB", function() { expect(vecB).toBeEqualish([0, 1, 2]); });
+    });
+
+    describe("zero", function() {
+        beforeEach(function() {
+            vecA = [1, 2, 3];
+            result = vec3.zero(vecA);
+        });
+        it("should result in a 3 element vector with zeros", function() { expect(result).toBeEqualish([0, 0, 0]); });
     });
 });

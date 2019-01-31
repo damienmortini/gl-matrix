@@ -1,25 +1,5 @@
-/* Copyright (c) 2015, Brandon Jones, Colin MacKenzie IV.
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE. */
-
-import * as vec3 from "../../src/gl-matrix/vec3"
-import * as vec4 from "../../src/gl-matrix/vec4"
+import * as vec3 from "../../src/vec3"
+import * as vec4 from "../../src/vec4"
 
 describe("vec4", function() {
     let out, vecA, vecB, result;
@@ -331,7 +311,7 @@ describe("vec4", function() {
 
         beforeEach(function() { result = vec4.distance(vecA, vecB); });
 
-        it("should return the distance", function() { expect(result).toBeCloseTo(8); });
+        it("should return the distance", function() { expect(result).toBeEqualish(8); });
     });
 
     describe("squaredDistance", function() {
@@ -347,7 +327,7 @@ describe("vec4", function() {
 
         beforeEach(function() { result = vec4.len(vecA); });
 
-        it("should return the length", function() { expect(result).toBeCloseTo(5.477225); });
+        it("should return the length", function() { expect(result).toBeEqualish(5.477225); });
     });
 
     describe("squaredLength", function() {
@@ -433,18 +413,58 @@ describe("vec4", function() {
         describe("with no scale", function() {
             beforeEach(function() { result = vec4.random(out); });
 
-            it("should result in a unit length vector", function() { expect(vec4.len(out)).toBeCloseTo(1.0); });
+            it("should result in a unit length vector", function() { expect(vec4.len(out)).toBeEqualish(1.0); });
             it("should return out", function() { expect(result).toBe(out); });
         });
 
         describe("with a scale", function() {
             beforeEach(function() { result = vec4.random(out, 5.0); });
 
-            it("should result in a unit length vector", function() { expect(vec4.len(out)).toBeCloseTo(5.0); });
+            it("should result in a unit length vector", function() { expect(vec4.len(out)).toBeEqualish(5.0); });
             it("should return out", function() { expect(result).toBe(out); });
         });
     });
 
+    describe("cross", function() {
+		let vecC = [0,0,0,0];
+        beforeEach(function() { vecA = [1, 0, 0, 0]; vecB = [0, 1, 0, 0]; vecC = [0, 0, 1, 0]; });
+
+        describe("with a separate output vector", function() {
+            beforeEach(function() { result = vec4.cross(out, vecA,vecB,vecC); });
+            
+            it("should place values into out", function() { expect(out).toBeEqualish([0, 0, 0, -1]); });
+            it("should return out", function() { expect(result).toBe(out); });
+            it("should not modify vecA", function() { expect(vecA).toBeEqualish([1, 0, 0, 0]); });
+            it("should not modify vecB", function() { expect(vecB).toBeEqualish([0, 1, 0, 0]); });
+            it("should not modify vecC", function() { expect(vecC).toBeEqualish([0, 0, 1, 0]); });
+        });
+
+        describe("when vecA is the output vector", function() {
+            beforeEach(function() { result = vec4.cross(vecA, vecA,vecB,vecC); });
+            
+            it("should place values into vecA", function() { expect(vecA).toBeEqualish([0, 0, 0,-1]); });
+            it("should return vecA", function() { expect(result).toBe(vecA); });
+            it("should not modify vecB", function() { expect(vecB).toBeEqualish([0, 1, 0, 0]); });
+            it("should not modify vecC", function() { expect(vecC).toBeEqualish([0, 0, 1, 0]); });
+        });
+        describe("when vecB is the output vector", function() {
+            beforeEach(function() { result = vec4.cross(vecB, vecA,vecB,vecC); });
+            
+            it("should place values into vecB", function() { expect(vecB).toBeEqualish([0, 0, 0,-1]); });
+            it("should return vecB", function() { expect(result).toBe(vecB); });
+            it("should not modify vecA", function() { expect(vecA).toBeEqualish([1, 0, 0, 0]); });
+            it("should not modify vecC", function() { expect(vecC).toBeEqualish([0, 0, 1, 0]); });
+        });
+        describe("when vecC is the output vector", function() {
+            beforeEach(function() { result = vec4.cross(vecC, vecA,vecB,vecC); });
+            
+            it("should place values into vecC", function() { expect(vecC).toBeEqualish([0, 0, 0,-1]); });
+            it("should return vecC", function() { expect(result).toBe(vecC); });
+            it("should not modify vecA", function() { expect(vecA).toBeEqualish([1, 0, 0, 0]); });
+            it("should not modify vecB", function() { expect(vecB).toBeEqualish([0, 1, 0, 0]); });
+        });
+    }); 
+    
     describe("forEach", function() {
         let vecArray;
 
@@ -579,5 +599,13 @@ describe("vec4", function() {
         it("should return true for close but not identical vectors", function() { expect(r2).toBe(true); });
         it("should not modify vecA", function() { expect(vecA).toBeEqualish([0, 1, 2, 3]); });
         it("should not modify vecB", function() { expect(vecB).toBeEqualish([0, 1, 2, 3]); });
+    });
+
+    describe("zero", function() {
+        beforeEach(function() {
+            vecA = [1, 2, 3, 4];
+            result = vec4.zero(vecA);
+        });
+        it("should result in a 4 element vector with zeros", function() { expect(result).toBeEqualish([0, 0, 0, 0]); });
     });
 });
